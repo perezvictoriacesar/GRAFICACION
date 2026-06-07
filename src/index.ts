@@ -1,148 +1,126 @@
-const canvas = document.getElementById("canvasBarras3D") as HTMLCanvasElement;
+// Vinculación de elementos del DOM
+const canvas = document.getElementById("canvasPoligonos") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-const labelsInput = document.getElementById("labelsInput") as HTMLInputElement;
-const valuesInput = document.getElementById("valuesInput") as HTMLInputElement;
+const inputLados = document.getElementById("inputLados") as HTMLInputElement;
+const inputRadio = document.getElementById("inputRadio") as HTMLInputElement;
+const inputRotacion = document.getElementById("inputRotacion") as HTMLInputElement;
+
+const lblLados = document.getElementById("lblLados") as HTMLSpanElement;
+const lblRadio = document.getElementById("lblRadio") as HTMLSpanElement;
+const lblRotacion = document.getElementById("lblRotacion") as HTMLSpanElement;
 const btnGraficar = document.getElementById("btnGraficar") as HTMLButtonElement;
 
-// Función dedicada a proyectar las caras poligonales del 3D
-function dibujarCara3D(
-    puntos: { x: number; y: number }[],
-    colorRelleno: string | CanvasGradient,
-    colorBorde: string
-) {
-    ctx.beginPath();
-    ctx.moveTo(puntos[0].x, puntos[0].y);
-    for (let i = 1; i < puntos.length; i++) {
-        ctx.lineTo(puntos[i].x, puntos[i].y);
-    }
-    ctx.closePath();
-    ctx.fillStyle = colorRelleno;
-    ctx.fill();
-    ctx.strokeStyle = colorBorde;
-    ctx.lineWidth = 0.5;
-    ctx.stroke();
-}
-
-function renderizarDashboard3D() {
+function dibujarPoligonoPro() {
+    // 1. Limpieza total del Lienzo
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const categorias: string[] = labelsInput.value.split(",").map(c => c.trim());
-    const valores: number[] = valuesInput.value.split(",").map(v => Number(v.trim()) || 0);
+    // 2. Obtener valores de los controles numéricos
+    const lados = Number(inputLados.value);
+    const radio = Number(inputRadio.value);
+    const gradosRotacion = Number(inputRotacion.value);
 
-    if (categorias.length === 0 || valores.length === 0 || categorias.length !== valores.length) {
-        alert("Error: Verifica que coincida el número de categorías y valores.");
-        return;
-    }
+    // Actualizar etiquetas dinámicas de la interfaz
+    lblLados.innerText = lados.toString();
+    lblRadio.innerText = `${radio}px`;
+    lblRotacion.innerText = `${gradosRotacion}°`;
 
-    const marginIzq = 140;
-    const marginDer = 60;
-    const marginSup = 40;
-    const marginInf = 70;
+    // 3. Definir centro geométrico del lienzo
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
 
-    const chartWidth = canvas.width - marginIzq - marginDer;
-    const chartHeight = canvas.height - marginSup - marginInf;
+    // Convertir la rotación de grados a radianes para Math.cos/sin
+    const rotacionRadianes = (gradosRotacion * Math.PI) / 180;
 
-    const valorMaximo = Math.max(...valores, 1);
-    // Escala adaptativa en múltiplos de 50
-    const limiteEscalaEje = Math.ceil(valorMaximo / 50) * 50;
-
-    // Dibujar rejilla de fondo estructural y numeraciones
-    const numeroDivisiones = 8;
-    ctx.font = "500 13px 'Segoe UI', sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "top";
-
-    for (let d = 0; d <= numeroDivisiones; d++) {
-        const ratio = d / numeroDivisiones;
-        const xActual = marginIzq + (ratio * chartWidth);
-        const valorMarcador = Math.round(ratio * limiteEscalaEje);
-
-        ctx.strokeStyle = "#e2e8f0";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(xActual, marginSup);
-        ctx.lineTo(xActual, canvas.height - marginInf + 10);
-        ctx.stroke();
-
-        ctx.fillStyle = "#64748b";
-        ctx.fillText(valorMarcador.toString(), xActual, canvas.height - marginInf + 18);
-    }
-
-    const numBarras = valores.length;
-    const subdivisionY = chartHeight / numBarras;
-    const grosorBarraFront = subdivisionY * 0.55;
-    const factorPerspectiva = 16; 
-
-    for (let i = 0; i < numBarras; i++) {
-        const categoria = categorias[i];
-        const valor = valores[i];
-
-        const anchoBarraFront = (valor / limiteEscalaEje) * chartWidth;
-        const posY_Front = marginSup + (i * subdivisionY) + (subdivisionY * 0.2);
-
-        const clrFrontalBase = "#0072ff";
-        const clrSombraInterna = "rgba(0, 0, 0, 0.12)";
-
-        // Cara A: Vista Frontal de la barra (Gradiente Cyan-Azul)
-        const gradientFront = ctx.createLinearGradient(marginIzq, 0, marginIzq + anchoBarraFront, 0);
-        gradientFront.addColorStop(0, "#00c6ff");
-        gradientFront.addColorStop(1, clrFrontalBase);
-        
-        ctx.fillStyle = gradientFront;
-        ctx.fillRect(marginIzq, posY_Front, anchoBarraFront, grosorBarraFront);
-        ctx.strokeStyle = clrSombraInterna;
-        ctx.lineWidth = 0.5;
-        ctx.strokeRect(marginIzq, posY_Front, anchoBarraFront, grosorBarraFront);
-
-        // Cara B: Techo Isométrico Superior
-        const puntosTecho = [
-            { x: marginIzq, y: posY_Front },
-            { x: marginIzq + factorPerspectiva, y: posY_Front - factorPerspectiva },
-            { x: marginIzq + anchoBarraFront + factorPerspectiva, y: posY_Front - factorPerspectiva },
-            { x: marginIzq + anchoBarraFront, y: posY_Front }
-        ];
-        const gradientTecho = ctx.createLinearGradient(0, posY_Front - factorPerspectiva, 0, posY_Front);
-        gradientTecho.addColorStop(0, "#93c5fd");
-        gradientTecho.addColorStop(1, "#1e40af");
-        dibujarCara3D(puntosTecho, gradientTecho, clrSombraInterna);
-
-        // Cara C: Lateral de Cierre (Bloque de Sombra)
-        const puntosLateral = [
-            { x: marginIzq + anchoBarraFront, y: posY_Front },
-            { x: marginIzq + anchoBarraFront + factorPerspectiva, y: posY_Front - factorPerspectiva },
-            { x: marginIzq + anchoBarraFront + factorPerspectiva, y: posY_Front + grosorBarraFront - factorPerspectiva },
-            { x: marginIzq + anchoBarraFront, y: posY_Front + grosorBarraFront }
-        ];
-        const gradientLateral = ctx.createLinearGradient(marginIzq + anchoBarraFront, 0, marginIzq + anchoBarraFront + factorPerspectiva, 0);
-        gradientLateral.addColorStop(0, "#1d4ed8");
-        gradientLateral.addColorStop(1, "#111827");
-        dibujarCara3D(puntosLateral, gradientLateral, clrSombraInterna);
-
-        // Textos descriptivos (Categoría a la izquierda, Valor numérico a la derecha)
-        ctx.fillStyle = "#1e293b";
-        ctx.font = "bold 14px 'Segoe UI', sans-serif";
-        ctx.textAlign = "right";
-        ctx.textBaseline = "middle";
-        ctx.fillText(categoria, marginIzq - 18, posY_Front + (grosorBarraFront / 2));
-
-        ctx.fillStyle = "#475569";
-        ctx.font = "600 14px 'Segoe UI', sans-serif";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "middle";
-        const txtX = marginIzq + anchoBarraFront + factorPerspectiva + 12;
-        const txtY = posY_Front + (grosorBarraFront / 2) - (factorPerspectiva / 2);
-        ctx.fillText(valor.toString(), txtX, txtY);
-    }
-
-    // Dibujo del Eje Y Central
-    ctx.strokeStyle = "#94a3b8";
-    ctx.lineWidth = 2;
+    // 4. DIBUJAR LÍNEAS GUÍA DE FONDO (Aspecto de plano técnico)
+    ctx.strokeStyle = "#f1f5f9";
+    ctx.lineWidth = 1.5;
+    // Círculo base de referencia
     ctx.beginPath();
-    ctx.moveTo(marginIzq, marginSup - factorPerspectiva);
-    ctx.lineTo(marginIzq, canvas.height - marginInf + 10);
+    ctx.arc(centerX, centerY, radio, 0, 2 * Math.PI);
     ctx.stroke();
+
+    // 5. CALCULAR VÉRTICES Y DIBUJAR LA FIGURA
+    const vertices: { x: number; y: number }[] = [];
+
+    for (let i = 0; i < lados; i++) {
+        // Fracción del ángulo total de la circunferencia (2*PI)
+        const angulo = (2 * Math.PI * i) / lados + rotacionRadianes;
+        
+        const x = centerX + radio * Math.cos(angulo);
+        const y = centerY + radio * Math.sin(angulo);
+        vertices.push({ x, y });
+    }
+
+    // --- EFECTO DE CAPAS ANIDADAS PARA EL LOOK PRO ---
+    // Dibujamos un degradado lineal estilizado para el relleno de la figura
+    const gradientRelleno = ctx.createLinearGradient(centerX - radio, centerY - radio, centerX + radio, centerY + radio);
+    gradientRelleno.addColorStop(0, "#34d399"); // Verde esmeralda brillante
+    gradientRelleno.addColorStop(1, "#059669"); // Verde oscuro corporativo
+
+    // Trazar la ruta del polígono principal
+    ctx.beginPath();
+    ctx.moveTo(vertices[0].x, vertices[0].y);
+    for (let i = 1; i < lados; i++) {
+        ctx.lineTo(vertices[i].x, vertices[i].y);
+    }
+    ctx.closePath();
+
+    // Aplicar sombra difuminada premium
+    ctx.shadowColor = "rgba(4, 120, 87, 0.35)";
+    ctx.shadowBlur = 25;
+    ctx.shadowOffsetY = 10;
+
+    // Rellenar la figura
+    ctx.fillStyle = gradientRelleno;
+    ctx.fill();
+
+    // Desactivar sombras para los siguientes trazos
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    // Dibujar el contorno externo brillante
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    ctx.strokeStyle = "#047857";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // 6. DIBUJAR CAPAS INTERNAS GEOMÉTRICAS (Efecto Vectorial Profesional)
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.lineWidth = 1;
+    for (let i = 0; i < lados; i++) {
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(vertices[i].x, vertices[i].y);
+        ctx.stroke();
+    }
+
+    // Dibujar los pequeños nodos en cada vértice
+    for (let i = 0; i < lados; i++) {
+        ctx.beginPath();
+        ctx.arc(vertices[i].x, vertices[i].y, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+        ctx.strokeStyle = "#059669";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    // Nodo central
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 4, 0, 2 * Math.PI);
+    ctx.fillStyle = "#10b981";
+    ctx.fill();
 }
 
-btnGraficar.addEventListener("click", renderizarDashboard3D);
-renderizarDashboard3D();
+// Escuchadores de eventos para actualización en tiempo real al mover los sliders
+inputLados.addEventListener("input", dibujarPoligonoPro);
+inputRadio.addEventListener("input", dibujarPoligonoPro);
+inputRotacion.addEventListener("input", dibujarPoligonoPro);
+btnGraficar.addEventListener("click", dibujarPoligonoPro);
+
+// Ejecución inicial automática al cargar
+dibujarPoligonoPro();
