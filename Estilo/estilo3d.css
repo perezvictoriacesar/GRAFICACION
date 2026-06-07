@@ -1,0 +1,83 @@
+/* Base del entorno del Dashboard */
+.bg-dashboard {
+    background-color: #ebf1f6;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+}
+
+/* Tarjeta contenedora con esquinas curvas modernas */
+.main-dashboard-card {
+    border-radius: 16px;
+    background-color: #f8fafc;
+}
+
+@media (min-width: 576px) {
+    .main-dashboard-card {
+        border-radius: 24px;
+    }
+}
+
+/* Texto de título adaptable en tamaño */
+.dashboard-title {
+    font-size: calc(1.15rem + 0.5vw);
+    letter-spacing: 0.5px;
+}
+
+/* Fondo gris ligero para la sección de parámetros */
+.bg-panel-inputs {
+    background-color: #f1f5f9;
+}
+
+/* Modificaciones de los campos de texto estilo premium */
+.input-group-text, .form-control {
+    border-color: #cbd5e1 !important;
+    background-color: #ffffff;
+    font-size: 0.95rem;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+    border-color: #3b82f6 !important;
+    z-index: 3;
+}
+
+/* Comportamiento dinámico del botón de acción */
+.btn-action {
+    background-color: #2563eb;
+    border: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-action:hover {
+    background-color: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+}
+
+/* Contenedor de desbordamiento elástico para el canvas */
+.canvas-responsive-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 10px 0;
+}
+
+/* Proporciones adaptables del lienzo gráfico */
+#canvasBarras3D {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+}
+
+/* En teléfonos inteligentes forzamos el ancho nativo para evitar amontonamiento */
+@media (max-width: 768px) {
+    #canvasBarras3D {
+        max-width: none;
+        width: 800px;
+    }
+}
