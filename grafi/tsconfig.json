@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2015",
+    "module": "ES2015",              // <--- Cambiado de "commonjs" a "ES2015"
+    "rootDir": "./src",
+    "outDir": "./dist/src",
+    "strict": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "bundler"    // O "node" si prefieres
+  },
+  "include": ["src/**/*"]
+}
